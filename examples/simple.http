@@ -1,0 +1,58 @@
+
+###
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+  "name": "hayri",
+  "age": 24,
+  "email": "hayri@gmail.com",
+  "alive": true,
+  "sex": "male"
+}
+
+###
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+  "name": "semsi",
+  "age": 34,
+  "email": "semsi@gmail.com",
+  "alive": true,
+  "sex": "male"
+}
+
+###
+GET http://localhost:3000/?name=hayri
+Accept: application/json
+
+###
+GET http://localhost:3000/?age__gt=30
+Accept: application/json
+
+###
+GET http://localhost:3000/6009b2d23f29dd7558fed256
+Accept: application/json
+
+###
+GET http://localhost:3000/count
+Accept: application/json
+
+###
+GET http://localhost:3000/count?age__gt=30
+Accept: application/json
+
+###
+PUT http://localhost:3000/6009b2d23f29dd7558fed256
+Content-Type: application/json
+
+{
+  "age": 44
+}
+
+###
+DELETE http://localhost:3000/6009b2d23f29dd7558fed256
+Content-Type: application/json
+
+{}
