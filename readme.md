@@ -1,3 +1,8 @@
+# kata
+
+Simple mongodb-node-expressjs API library
+
+### start mongodb docker
 
 ```bash
 docker run  -d --rm -p 27017:27017 --name mongo-local mongo
@@ -5,53 +10,162 @@ docker run  -d --rm -p 27017:27017 --name mongo-local mongo
 docker stop mongo-local
 ```
 
+### install dependencies
 
-# todos
+```bash
+# install library
+yarn add chemikata
 
-- readme yaz (örnekler ve kaynak dokumantasyon)
+# install other dependencies
+yarn add mongoose express body-parser express-validator
 
-- user-id middleware (kong x-user-id) req.header -> req.query
+```
 
-- aggregation nasıl oluyor (populate)
+### index.js
 
-- full text search
+```js
+(async () => {
+  const mongoose = require('mongoose');
+  const express = require('express');
+  const bodParser = require('body-parser');
+  const {body, param} = require('express-validator');
 
-- response sanitizer (sadece gerekli fieldlar döndürülsün)
 
-- one2one one2many
-***
-# docs
+  const {createController, genericController} = require('chemikata');
 
-### mongoose api
 
-https://mongoosejs.com/docs/guide.html
+  const UserModel = mongoose.model('User', new mongoose.Schema({
+    name: String,
+    age: Number,
+    email: String,
+    alive: Boolean,
+    sex: String
+  }));
 
-### populate api & lookup (joinler için)
-https://mongoosejs.com/docs/populate.html
+  const userFormSchema = {
+    create: [
+      body("name").isString().isLength({min: 5}),
+      body("age").isInt({min: 10, max: 60}),
+      body("email").isEmail(),
+      body("sex").isIn(["male", "female"]),
+      body("alive").optional().isBoolean()
+    ],
+    update: [
+      body("age").isInt({min: 10, max: 60}),
+      body("alive").custom(value => {
+        if (value !== undefined) {
+          throw new Error("alive must not be defined")
+        }
+        return true;
+      }),
+      param("id").isMongoId()
+    ]
+  }
 
-https://dev.to/paras594/how-to-use-populate-in-mongoose-node-js-mo0
 
-https://github.com/mongodb-js/mongoose-autopopulate (autopopulate)
+  await mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true, useUnifiedTopology: true});
+
+
+  const app = express();
+
+  app.use(bodParser.json());
+  app.use("/", createController(genericController(UserModel), userFormSchema));
+
+
+  app.listen(3000, () => {
+    console.log(3000, "listening");
+  })
+
+})();
+
+
+```
+
+### http requests
+
+```http
+
+###
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+  "name": "hayri",
+  "age": 24,
+  "email": "hayri@gmail.com",
+  "alive": true,
+  "sex": "male"
+}
+
+###
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+  "name": "semsi",
+  "age": 34,
+  "email": "semsi@gmail.com",
+  "alive": true,
+  "sex": "male"
+}
+
+###
+GET http://localhost:3000/?name=hayri
+Accept: application/json
+
+###
+GET http://localhost:3000/?age__gt=30
+Accept: application/json
+
+###
+GET http://localhost:3000/6009b2d23f29dd7558fed256
+Accept: application/json
+
+###
+GET http://localhost:3000/count
+Accept: application/json
+
+###
+GET http://localhost:3000/count?age__gt=30
+Accept: application/json
+
+###
+PUT http://localhost:3000/6009b2d23f29dd7558fed256
+Content-Type: application/json
+
+{
+  "age": 44
+}
+
+###
+DELETE http://localhost:3000/6009b2d23f29dd7558fed256
+Content-Type: application/json
+
+{}
+
+```
+
+
+### custom handler
+
+override list method and allow only list handler
+
+```js
+  const controller = (model) => ({
+    ...genericController(model),
+    list: () => ({message: "surprise motherfucker"})
+  })
+
+  app.use("/", createController(controller(UserModel), null, ["list"]));
+```
+
 
 ### form validation
 
 https://express-validator.github.io/docs/
 
-https://github.com/validatorjs/validator.js#sanitizers
-
+https://github.com/validatorjs/validator.js
 
 ### query parameters
 
 https://github.com/vasansr/query-params-mongo
-
-https://mongoosejs.com/docs/api.html#query_Query-setOptions
-
-### referans tasarım
-
-https://strapi.io/documentation/developer-docs/latest/content-api/api-endpoints.html#endpoints
-
-
-### mongodb in memory test
-
-https://github.com/nodkz/mongodb-memory-server
-
