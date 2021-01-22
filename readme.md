@@ -1,4 +1,4 @@
-# kata
+# chemikata
 
 Simple mongodb-node-expressjs API library
 
