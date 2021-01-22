@@ -5,6 +5,15 @@ const _ = require('lodash');
 
 describe('smallpox', function () {
 
+  it('should timestamp', function () {
+    let res = Date.now();
+    console.log(res);
+    console.log(typeof res);
+
+    res = new Date(res)
+    console.log(res);
+
+  });
 
   it('should work', function () {
     const a = {user: "adam", age: 33}

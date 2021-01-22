@@ -14,7 +14,9 @@
     age: Number,
     email: String,
     alive: Boolean,
-    sex: String
+    sex: String,
+    createdAt: Number,
+    updatedAt: Number,
   }));
 
   const userFormSchema = {

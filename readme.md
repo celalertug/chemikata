@@ -24,6 +24,7 @@ yarn add mongoose express body-parser express-validator
 ### index.js
 
 ```js
+
 (async () => {
   const mongoose = require('mongoose');
   const express = require('express');
@@ -31,7 +32,8 @@ yarn add mongoose express body-parser express-validator
   const {body, param} = require('express-validator');
 
 
-  const {createController, genericController} = require('chemikata');
+  const createController = require('../controller/createController');
+  const genericController = require('../controller/genericController');
 
 
   const UserModel = mongoose.model('User', new mongoose.Schema({
@@ -39,7 +41,9 @@ yarn add mongoose express body-parser express-validator
     age: Number,
     email: String,
     alive: Boolean,
-    sex: String
+    sex: String,
+    createdAt: Number,
+    updatedAt: Number,
   }));
 
   const userFormSchema = {
@@ -69,6 +73,7 @@ yarn add mongoose express body-parser express-validator
   const app = express();
 
   app.use(bodParser.json());
+  // noinspection JSCheckFunctionSignatures
   app.use("/", createController(genericController(UserModel), userFormSchema));
 
 
@@ -77,7 +82,6 @@ yarn add mongoose express body-parser express-validator
   })
 
 })();
-
 
 ```
 

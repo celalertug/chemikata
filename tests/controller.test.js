@@ -13,7 +13,11 @@ const createController = require('../controller/createController');
 const genericController = require('../controller/genericController');
 
 
-const UserModel = mongoose.model('User', new mongoose.Schema({name: String, age: Number}));
+const UserModel = mongoose.model('User', new mongoose.Schema({
+  name: String,
+  age: Number,
+  createdAt: Number
+}));
 
 
 describe('test collection crud', () => {
@@ -86,11 +90,13 @@ describe('test collection crud', () => {
 
   });
 
+
   it('should create', async function () {
     let res = await axios.post(`${URL}/`, {name: "user4"});
     assert.deepStrictEqual(res.data.name, "user4");
 
     res = await axios.get(`${URL}/`);
+
 
     res = res.data.map(i => ({name: i.name}))
     assert.deepStrictEqual(res, [

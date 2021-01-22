@@ -5,9 +5,9 @@ module.exports = (Model, customHandler) => {
     get: (filter = {}) => Model.findOne(filter),
     count: (filter = {}) => Model.estimatedDocumentCount(filter),
     countDocuments: (filter = {}) => Model.countDocuments(filter),
-    create: (object = {}) => Model.create(object),
+    create: (object = {}) => Model.create({...object, createdAt: Date.now()}),
     remove: (filter = {}) => Model.deleteOne(filter),
-    update: (filter = {}, data = {}) => Model.findOneAndUpdate(filter, data),
+    update: (filter = {}, data = {}) => Model.findOneAndUpdate(filter, {...data, updatedAt: Date.now()}),
   }
 
   return {...defaultHandler, ...customHandler}
