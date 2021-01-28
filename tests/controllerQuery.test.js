@@ -20,7 +20,7 @@ const UserModel = mongoose.model('User', new mongoose.Schema({
 }));
 
 
-describe('test', function () {
+describe('test query', function () {
 
   let listener;
   const PORT = 3002;

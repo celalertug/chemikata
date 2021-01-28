@@ -74,78 +74,156 @@ module.exports = (controller, formSchema = {}, methods = ["list", "get", "count"
 
   if (methods.includes("remove")) {
     // delete
-    router.delete("/:id", async (req, res) => {
-      try {
-        return res.json(await c.remove({_id: mongoose.Types.ObjectId(req.params.id)}))
-      } catch (err) {
-        return res.status(500).json({message: "db error"});
-      }
-    });
+    if (formSchema.remove) {
+      router.delete("/:id", formSchema.remove, async (req, res) => {
+        try {
+
+          return res.json(await c.remove({_id: mongoose.Types.ObjectId(req.params.id)}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+    } else {
+      router.delete("/:id", async (req, res) => {
+        try {
+          return res.json(await c.remove({_id: mongoose.Types.ObjectId(req.params.id)}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+    }
+
   }
 
 
   if (methods.includes("count")) {
     // count
-    router.get("/count", async (req, res) => {
+    if (formSchema.count) {
+      router.get("/count", formSchema.count, async (req, res) => {
 
-      let query;
-      try {
-        query = processQuery(req.query);
-      } catch (err) {
-        return res.status(500).json({message: "query error"});
-      }
-      const {filter} = query;
-
-      try {
-        let count;
-        if (_.isEqual(filter, {})) {
-          // no filter query
-          count = await c.count(filter)
-        } else {
-          count = await c.countDocuments(filter)
+        let query;
+        try {
+          query = processQuery(req.query);
+        } catch (err) {
+          return res.status(500).json({message: "query error"});
         }
-        return res.json({count})
-      } catch (err) {
-        return res.status(500).json({message: "db error"});
-      }
-    });
+        const {filter} = query;
+
+        try {
+          let count;
+          if (_.isEqual(filter, {})) {
+            // no filter query
+            count = await c.count(filter)
+          } else {
+            count = await c.countDocuments(filter)
+          }
+          return res.json({count})
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+    } else {
+      router.get("/count", async (req, res) => {
+
+        let query;
+        try {
+          query = processQuery(req.query);
+        } catch (err) {
+          return res.status(500).json({message: "query error"});
+        }
+        const {filter} = query;
+
+        try {
+          let count;
+          if (_.isEqual(filter, {})) {
+            // no filter query
+            count = await c.count(filter)
+          } else {
+            count = await c.countDocuments(filter)
+          }
+          return res.json({count})
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+
+    }
+
 
   }
 
   if (methods.includes("list")) {
     // get list
-    router.get("/", async (req, res) => {
-      let query;
-      try {
-        query = processQuery(req.query);
-      } catch (err) {
-        return res.status(500).json({message: "query error"});
-      }
-      const {
-        filter,
-        sort,
-        limit,
-        offset,
-        skip
-      } = query;
+    if (formSchema.list) {
+      router.get("/", formSchema.list, async (req, res) => {
+        let query;
+        try {
+          query = processQuery(req.query);
+        } catch (err) {
+          return res.status(500).json({message: "query error"});
+        }
+        const {
+          filter,
+          sort,
+          limit,
+          offset,
+          skip
+        } = query;
 
-      try {
-        res.json(await c.list(filter, {sort, limit, offset, skip}))
-      } catch (err) {
-        return res.status(500).json({message: "db error"});
-      }
-    });
+        try {
+          res.json(await c.list(filter, {sort, limit, offset, skip}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+
+    } else {
+      router.get("/", async (req, res) => {
+        let query;
+        try {
+          query = processQuery(req.query);
+        } catch (err) {
+          return res.status(500).json({message: "query error"});
+        }
+        const {
+          filter,
+          sort,
+          limit,
+          offset,
+          skip
+        } = query;
+
+        try {
+          res.json(await c.list(filter, {sort, limit, offset, skip}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+
+    }
   }
 
   if (methods.includes("get")) {
     // get one
-    router.get("/:id", async (req, res) => {
-      try {
-        return res.json(await c.get({_id: mongoose.Types.ObjectId(req.params.id)}))
-      } catch (err) {
-        return res.status(500).json({message: "db error"});
-      }
-    });
+    if (formSchema.get) {
+      router.get("/:id", formSchema.get, async (req, res) => {
+        try {
+          return res.json(await c.get({_id: mongoose.Types.ObjectId(req.params.id)}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+
+    } else {
+      router.get("/:id", async (req, res) => {
+        try {
+          return res.json(await c.get({_id: mongoose.Types.ObjectId(req.params.id)}))
+        } catch (err) {
+          return res.status(500).json({message: "db error"});
+        }
+      });
+
+    }
 
   }
 

@@ -41,11 +41,16 @@ const userFormSchema = {
       return true;
     }),
     param("id").isInt()
-
+  ],
+  list: [
+    (req, res, next) => {
+      req.query.id = 2;
+      next();
+    }
   ]
 }
 
-describe('test collection crud', () => {
+describe('test form validation', () => {
 
   let mongoServer;
   const opts = {useNewUrlParser: true, useUnifiedTopology: true};
@@ -93,6 +98,14 @@ describe('test collection crud', () => {
     await userSeed();
   });
 
+  it('should list', async function () {
+    const res = await axios.get(`${URL}/`);
+    // console.log(res.data);
+    assert.deepStrictEqual(res.data[0].id, 2);
+    assert.deepStrictEqual(res.data[0].name, "user2");
+    assert.deepStrictEqual(res.data[0].age, 21);
+
+  });
 
   it('should create valid', async function () {
     let res;
