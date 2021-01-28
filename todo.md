@@ -8,17 +8,18 @@ docker stop mongo-local
 
 # todos
 
-- readme yaz (örnekler ve kaynak dokumantasyon)
+## example yaz
 
-- user-id middleware (kong x-user-id) req.header -> req.query
-
-- aggregation nasıl oluyor (populate)
+- model override (aggregation ve lookup)
 
 - full text search
 
-- response sanitizer (sadece gerekli fieldlar döndürülsün)
+- projection (find ve findOne)
 
-- one2one one2many
+- endpoint override (createController'den dönen router ile get,post vs method çağır)
+
+- userForm parametresini middleware olarak güncelle, validator dışında örnek yap
+
 ***
 # docs
 
