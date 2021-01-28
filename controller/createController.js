@@ -1,4 +1,6 @@
 const express = require('express');
+const mongoose = require('mongoose');
+
 const qpm = require('query-params-mongo');
 const _ = require('lodash');
 const {validationResult} = require('express-validator');
@@ -47,7 +49,7 @@ module.exports = (controller, formSchema = {}, methods = ["list", "get", "count"
         }
 
         try {
-          const ret = await c.update({_id: req.params.id}, req.body)
+          const ret = await c.update({_id: mongoose.Types.ObjectId(req.params.id)}, req.body)
           res.json({success: ret !== null})
         } catch (err) {
           return res.status(500).json({message: "db error"});
@@ -59,7 +61,7 @@ module.exports = (controller, formSchema = {}, methods = ["list", "get", "count"
       router.put("/:id", async (req, res) => {
 
         try {
-          const ret = await c.update({_id: req.params.id}, req.body)
+          const ret = await c.update({_id: mongoose.Types.ObjectId(req.params.id)}, req.body)
           res.json({success: ret !== null})
         } catch (err) {
           return res.status(500).json({message: "db error"});
@@ -74,7 +76,7 @@ module.exports = (controller, formSchema = {}, methods = ["list", "get", "count"
     // delete
     router.delete("/:id", async (req, res) => {
       try {
-        return res.json(await c.remove({_id: req.params.id}))
+        return res.json(await c.remove({_id: mongoose.Types.ObjectId(req.params.id)}))
       } catch (err) {
         return res.status(500).json({message: "db error"});
       }
@@ -139,7 +141,7 @@ module.exports = (controller, formSchema = {}, methods = ["list", "get", "count"
     // get one
     router.get("/:id", async (req, res) => {
       try {
-        return res.json(await c.get({_id: req.params.id}))
+        return res.json(await c.get({_id: mongoose.Types.ObjectId(req.params.id)}))
       } catch (err) {
         return res.status(500).json({message: "db error"});
       }
