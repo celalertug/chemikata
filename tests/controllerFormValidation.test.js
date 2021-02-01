@@ -39,7 +39,7 @@ const userFormSchema = {
       }
       return true;
     }),
-    param('id').isInt(),
+    param('id').isMongoId(),
   ],
   list: [
     (req, res, next) => {
@@ -97,9 +97,9 @@ describe('test form validation', () => {
   it('should list', async () => {
     const res = await axios.get(`${URL}/`);
     // console.log(res.data);
-    assert.deepStrictEqual(res.data[0].id, 2);
-    assert.deepStrictEqual(res.data[0].name, 'user2');
-    assert.deepStrictEqual(res.data[0].age, 21);
+    assert.deepStrictEqual(res.data[0].id, 1);
+    assert.deepStrictEqual(res.data[0].name, 'user1');
+    assert.deepStrictEqual(res.data[0].age, 20);
   });
 
   it('should create valid', async () => {
@@ -131,62 +131,60 @@ describe('test form validation', () => {
   });
 
   it('should create invalid', async () => {
+    let res;
     try {
       await axios.post(`${URL}/`, {
         id: 4, name: 'user4', age: 5, email: 'adam@mail.com', sex: 'male1',
       });
+      assert.strictEqual(1, 0);
     } catch (err) {
-      assert.deepStrictEqual(err.response.data, {
-        errors: [
-          {
-            value: 5, msg: 'Invalid value', param: 'age', location: 'body',
-          },
-          {
-            value: 'male1',
-            msg: 'Invalid value',
-            param: 'sex',
-            location: 'body',
-          },
-        ],
-      });
+      res = err.response.data;
     }
+
+    assert.deepStrictEqual(res, {
+      errors: [
+        {
+          value: 5, msg: 'Invalid value', param: 'age', location: 'body',
+        },
+        {
+          value: 'male1',
+          msg: 'Invalid value',
+          param: 'sex',
+          location: 'body',
+        },
+      ],
+    });
   });
 
   it('should update', async () => {
-    let res;
-    try {
-      res = await axios.put(`${URL}/1`, { age: 32 });
-      assert.deepStrictEqual(res.data, { success: true });
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.log(err.response.data);
-    }
+    const user = await UserModel.findOne({ id: 1 });
+    const res = await axios.put(`${URL}/${user._id}`, { age: 32 });
+    assert.deepStrictEqual(res.data, { success: true });
   });
 
   it('should update error', async () => {
+    let res;
     try {
-      await axios.put(`${URL}/1`, { age: 32, alive: false });
-      // console.log(res.data);
+      const user = await UserModel.findOne({ id: 1 });
+      await axios.put(`${URL}/${user._id}`, { age: 32, alive: false });
+      assert.strictEqual(1, 0);
     } catch (err) {
-      assert.deepStrictEqual(err.response.data.errors[0].msg, 'alive must not be defined');
+      res = err.response.data;
     }
+    assert.deepStrictEqual(res, {
+      errors: [
+        {
+          value: false,
+          msg: 'alive must not be defined',
+          param: 'alive',
+          location: 'body',
+        },
+      ],
+    });
   });
 
   it('should update error2', async () => {
-    try {
-      await axios.put(`${URL}/1xxx`, { age: 32 });
-    } catch (err) {
-      // console.log(err.response.data);
-      assert.deepStrictEqual(err.response.data, {
-        errors: [
-          {
-            value: '1xxx',
-            msg: 'Invalid value',
-            param: 'id',
-            location: 'params',
-          },
-        ],
-      });
-    }
+    const res = await axios.put(`${URL}/000000000000000000000000`, { age: 32 });
+    assert.deepStrictEqual(res.data, { success: false });
   });
 });

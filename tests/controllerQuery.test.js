@@ -87,11 +87,13 @@ describe('test query', () => {
   });
 
   it('should throw error', async () => {
+    let res;
     try {
       await axios.get(`${URL}/?name=obama&age__gt=45&category__inx=aa,bb`);
     } catch (err) {
-      assert.deepStrictEqual(err.response.data, { message: 'query error' });
+      res = err.response.data;
     }
+    assert.deepStrictEqual(res, { message: 'query error' });
   });
 
   it('should filter range', async () => {
