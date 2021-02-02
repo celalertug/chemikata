@@ -9,41 +9,42 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   const router = express.Router();
   const processQuery = qpm();
 
-  router.use((req, res, next) => {
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //   return res.status(400).json({ errors: errors.array() });
-    // }
+  const validationMiddleware = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
+    return next();
+  };
+
+  const queryParseMiddleware = (req, res, next) => {
     try {
       req.mongoQuery = processQuery(req.query);
     } catch (err) {
       return res.status(500).json({ message: 'query error' });
     }
     return next();
-  });
+  };
 
-  // const c = controller(model);
-  const c = controller;
+  const afterMiddlewares = [validationMiddleware, queryParseMiddleware];
+
+  // const controller = controller2;
 
   if (methods.includes('create')) {
     // create
     if (formSchema.create) {
-      router.post('/', formSchema.create, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
+      router.post('/', formSchema.create, afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.create(req.body));
+          return res.json(await controller.create(req.body));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
       });
     } else {
-      router.post('/', async (req, res) => {
+      router.post('/', afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.create(req.body));
+          return res.json(await controller.create(req.body));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
@@ -54,22 +55,18 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   if (methods.includes('update')) {
     // update
     if (formSchema.update) {
-      router.put('/:id', formSchema.update, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
+      router.put('/:id', formSchema.update, afterMiddlewares, async (req, res) => {
         try {
-          const ret = await c.update({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }, req.body);
+          const ret = await controller.update({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }, req.body);
           return res.json({ success: ret !== null });
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
       });
     } else {
-      router.put('/:id', async (req, res) => {
+      router.put('/:id', afterMiddlewares, async (req, res) => {
         try {
-          const ret = await c.update({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }, req.body);
+          const ret = await controller.update({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }, req.body);
           return res.json({ success: ret !== null });
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
@@ -81,21 +78,17 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   if (methods.includes('remove')) {
     // delete
     if (formSchema.remove) {
-      router.delete('/:id', formSchema.remove, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
+      router.delete('/:id', formSchema.remove, afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.remove({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
+          return res.json(await controller.remove({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
       });
     } else {
-      router.delete('/:id', async (req, res) => {
+      router.delete('/:id', afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.remove({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
+          return res.json(await controller.remove({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
@@ -106,18 +99,14 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   if (methods.includes('count')) {
     // count
     if (formSchema.count) {
-      router.get('/count', formSchema.count, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
+      router.get('/count', formSchema.count, afterMiddlewares, async (req, res) => {
         try {
           let count;
           if (_.isEqual(req.mongoQuery.filter, {})) {
             // no filter query
-            count = await c.count(req.mongoQuery.filter);
+            count = await controller.count(req.mongoQuery.filter);
           } else {
-            count = await c.countDocuments(req.mongoQuery.filter);
+            count = await controller.countDocuments(req.mongoQuery.filter);
           }
           return res.json({ count });
         } catch (err) {
@@ -125,14 +114,14 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
         }
       });
     } else {
-      router.get('/count', async (req, res) => {
+      router.get('/count', afterMiddlewares, async (req, res) => {
         try {
           let count;
           if (_.isEqual(req.mongoQuery.filter, {})) {
             // no filter query
-            count = await c.count(req.mongoQuery.filter);
+            count = await controller.count(req.mongoQuery.filter);
           } else {
-            count = await c.countDocuments(req.mongoQuery.filter);
+            count = await controller.countDocuments(req.mongoQuery.filter);
           }
           return res.json({ count });
         } catch (err) {
@@ -145,17 +134,7 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   if (methods.includes('list')) {
     // get list
     if (formSchema.list) {
-      router.get('/', formSchema.list, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
-        // let query;
-        // try {
-        //   query = processQuery(req.query);
-        // } catch (err) {
-        //   return res.status(500).json({ message: 'query error' });
-        // }
+      router.get('/', formSchema.list, afterMiddlewares, async (req, res) => {
         const {
           filter,
           sort,
@@ -165,7 +144,7 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
         } = req.mongoQuery;
 
         try {
-          return res.json(await c.list(filter, {
+          return res.json(await controller.list(filter, {
             sort, limit, offset, skip,
           }));
         } catch (err) {
@@ -173,23 +152,17 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
         }
       });
     } else {
-      router.get('/', async (req, res) => {
-        // let query;
-        // try {
-        //   query = processQuery(req.query);
-        // } catch (err) {
-        //   return res.status(500).json({ message: 'query error' });
-        // }
-        const {
-          filter,
-          sort,
-          limit,
-          offset,
-          skip,
-        } = req.mongoQuery;
-
+      router.get('/', afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.list(filter, {
+          const {
+            filter,
+            sort,
+            limit,
+            offset,
+            skip,
+          } = req.mongoQuery;
+
+          return res.json(await controller.list(filter, {
             sort, limit, offset, skip,
           }));
         } catch (err) {
@@ -202,21 +175,17 @@ module.exports = (controller, formSchema = {}, methods = ['list', 'get', 'count'
   if (methods.includes('get')) {
     // get one
     if (formSchema.get) {
-      router.get('/:id', formSchema.get, async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
-        }
+      router.get('/:id', formSchema.get, afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.get({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
+          return res.json(await controller.get({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }
       });
     } else {
-      router.get('/:id', async (req, res) => {
+      router.get('/:id', afterMiddlewares, async (req, res) => {
         try {
-          return res.json(await c.get({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
+          return res.json(await controller.get({ _id: mongoose.Types.ObjectId(req.params.id), ...req.mongoQuery.filter }));
         } catch (err) {
           return res.status(500).json({ message: 'db error' });
         }

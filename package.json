@@ -1,6 +1,6 @@
 {
   "name": "chemikata",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "index.js",
   "license": "MIT",
   "repository": {
@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "lintfix": "eslint . --fix"
+    "lintfix": "eslint . --fix",
+    "test": "mocha tests/controllerFormValidation.test.js && mocha tests/controller.test.js && mocha tests/controllerQuery.test.js"
   },
   "dependencies": {
     "axios": "^0.21.1",

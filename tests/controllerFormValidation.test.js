@@ -40,10 +40,14 @@ const userFormSchema = {
       return true;
     }),
     param('id').isMongoId(),
+    (req, res, next) => {
+      req.query.name = 'user1';
+      next();
+    },
   ],
   list: [
     (req, res, next) => {
-      req.query.id = 2;
+      req.query.name = 'user2';
       next();
     },
   ],
@@ -97,9 +101,9 @@ describe('test form validation', () => {
   it('should list', async () => {
     const res = await axios.get(`${URL}/`);
     // console.log(res.data);
-    assert.deepStrictEqual(res.data[0].id, 1);
-    assert.deepStrictEqual(res.data[0].name, 'user1');
-    assert.deepStrictEqual(res.data[0].age, 20);
+    assert.deepStrictEqual(res.data[0].id, 2);
+    assert.deepStrictEqual(res.data[0].name, 'user2');
+    assert.deepStrictEqual(res.data[0].age, 21);
   });
 
   it('should create valid', async () => {
@@ -160,6 +164,12 @@ describe('test form validation', () => {
     const user = await UserModel.findOne({ id: 1 });
     const res = await axios.put(`${URL}/${user._id}`, { age: 32 });
     assert.deepStrictEqual(res.data, { success: true });
+  });
+
+  it('should update error on unauthorized resource', async () => {
+    const user = await UserModel.findOne({ id: 2 });
+    const res = await axios.put(`${URL}/${user._id}`, { age: 32 });
+    assert.deepStrictEqual(res.data, { success: false });
   });
 
   it('should update error', async () => {

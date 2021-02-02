@@ -89,7 +89,7 @@ describe('test query', () => {
   it('should throw error', async () => {
     let res;
     try {
-      await axios.get(`${URL}/?name=obama&age__gt=45&category__inx=aa,bb`);
+      await axios.get(`${URL}/?name=obama&age__gt=45&category__inxxxxx=aa,bb`);
     } catch (err) {
       res = err.response.data;
     }
